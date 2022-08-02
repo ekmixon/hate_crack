@@ -197,9 +197,9 @@ def get_tokenizer(tag=None, chunkers=None, filters=None):
         # Try just the base
         base = tag.split("_")[0]
         tkFunc = _try_tokenizer(base)
-        if tkFunc is None:
-            msg = "No tokenizer found for language '%s'" % (tag,)
-            raise TokenizerNotFoundError(msg)
+    if tkFunc is None:
+        msg = "No tokenizer found for language '%s'" % (tag,)
+        raise TokenizerNotFoundError(msg)
     # Given the language-specific tokenizer, we now build up the
     # end result as follows:
     #    * chunk the text using any given chunkers in turn
@@ -263,9 +263,7 @@ class basic_tokenize(tokenize):
     def next(self):
         text = self._text
         offset = self._offset
-        while True:
-            if offset >= len(text):
-                break
+        while offset < len(text):
             # Find start of next word
             while offset < len(text) and text[offset].isspace():
                 offset += 1
@@ -278,7 +276,7 @@ class basic_tokenize(tokenize):
             # Strip chars from font/end of word
             while sPos < len(text) and text[sPos] in self.strip_from_start:
                 sPos += 1
-            while 0 < ePos and text[ePos - 1] in self.strip_from_end:
+            while ePos > 0 and text[ePos - 1] in self.strip_from_end:
                 ePos -= 1
             # Return if word isnt empty
             if (sPos < ePos):
@@ -450,9 +448,7 @@ class URLFilter(Filter):
     _pattern = re.compile(r"^[a-zA-z]+:\/\/[^\s].*")
 
     def _skip(self, word):
-        if self._pattern.match(word):
-            return True
-        return False
+        return bool(self._pattern.match(word))
 
 
 class WikiWordFilter(Filter):
@@ -466,9 +462,7 @@ class WikiWordFilter(Filter):
     _pattern = re.compile(r"^([A-Z]\w+[A-Z]+\w+)")
 
     def _skip(self, word):
-        if self._pattern.match(word):
-            return True
-        return False
+        return bool(self._pattern.match(word))
 
 
 class EmailFilter(Filter):
@@ -482,9 +476,7 @@ class EmailFilter(Filter):
     _pattern = re.compile(r"^.+@[^\.].*\.[a-z]{2,}$")
 
     def _skip(self, word):
-        if self._pattern.match(word):
-            return True
-        return False
+        return bool(self._pattern.match(word))
 
 
 class HTMLChunker(Chunker):
@@ -498,9 +490,7 @@ class HTMLChunker(Chunker):
     def next(self):
         text = self._text
         offset = self.offset
-        while True:
-            if offset >= len(text):
-                break
+        while offset < len(text):
             # Skip to the end of the current tag, if any.
             if text[offset] == "<":
                 maybeTag = offset

@@ -98,9 +98,8 @@ class Trie:
         if nerrs < 0:
             return res
         # Precise match at the end of the word
-        if nerrs == 0 and word == "":
-            if self._eos:
-                res.append("")
+        if nerrs == 0 and word == "" and self._eos:
+            res.append("")
         # Precisely match word[0]
         try:
             subtrie = self[word[0]]
@@ -117,7 +116,7 @@ class Trie:
             for w in subres:
                 if w not in res:
                     res.append(w)
-        except (IndexError,):
+        except IndexError:
             pass
         # match with insertion before word[0]
         try:

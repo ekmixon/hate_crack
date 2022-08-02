@@ -50,17 +50,16 @@ from enchant.utils import unicode, raw_unicode, printf, trim_suggestions
 
 
 def runcmd(cmd):
-    if subprocess is not None:
-        kwds = dict(stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        p = subprocess.Popen(cmd, **kwds)
-        (stdout, stderr) = p.communicate()
-        if p.returncode:
-            if sys.version_info[0] >= 3:
-                stderr = stderr.decode(sys.getdefaultencoding(), "replace")
-            sys.stderr.write(stderr)
-        return p.returncode
-    else:
+    if subprocess is None:
         return os.system(cmd)
+    kwds = dict(stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd, **kwds)
+    (stdout, stderr) = p.communicate()
+    if p.returncode:
+        if sys.version_info[0] >= 3:
+            stderr = stderr.decode(sys.getdefaultencoding(), "replace")
+        sys.stderr.write(stderr)
+    return p.returncode
 
 
 class TestBroker(unittest.TestCase):
@@ -137,7 +136,7 @@ class TestBroker(unittest.TestCase):
                 order = prov.name
                 for prov2 in provs:
                     if prov2 not in langs[tag]:
-                        order = prov2.name + "," + order
+                        order = f"{prov2.name},{order}"
                 b2 = Broker()
                 b2.set_ordering(tag, order)
                 d = b2.request_dict(tag)
@@ -301,18 +300,16 @@ class TestPWL(unittest.TestCase):
 
     def setPWLContents(self, contents):
         """Set the contents of the PWL file."""
-        pwlFile = open(self._path(), "w")
-        for ln in contents:
-            pwlFile.write(ln)
-            pwlFile.write("\n")
-        pwlFile.flush()
-        pwlFile.close()
+        with open(self._path(), "w") as pwlFile:
+            for ln in contents:
+                pwlFile.write(ln)
+                pwlFile.write("\n")
+            pwlFile.flush()
 
     def getPWLContents(self):
         """Retrieve the contents of the PWL file."""
-        pwlFile = open(self._path(), "r")
-        contents = pwlFile.readlines()
-        pwlFile.close()
+        with open(self._path(), "r") as pwlFile:
+            contents = pwlFile.readlines()
         return [c.strip() for c in contents]
 
     def test_check(self):
@@ -385,7 +382,7 @@ class TestPWL(unittest.TestCase):
     def test_PyPWL(self):
         """Test our pure-python PWL implementation."""
         d = PyPWL()
-        self.assertTrue(list(d._words) == [])
+        self.assertTrue(not list(d._words))
         d.add("hello")
         d.add("there")
         d.add("duck")
@@ -474,7 +471,7 @@ class TestDocStrings(unittest.TestCase):
     def _check_docstrings(self, obj, errors):
         import enchant
         if hasattr(obj, "__doc__"):
-            skip_errors = [w for w in getattr(obj, "_DOC_ERRORS", [])]
+            skip_errors = list(getattr(obj, "_DOC_ERRORS", []))
             chkr = enchant.checker.SpellChecker("en_AU", obj.__doc__, filters=[enchant.tokenize.URLFilter])
             for err in chkr:
                 if len(err.word) == 1:
@@ -577,7 +574,7 @@ class TestPy2exe(unittest.TestCase):
         if not path.exists(setup_py):
             return
         buildCmd = '%s %s -q py2exe --dist-dir="%s"'
-        buildCmd = buildCmd % (sys.executable, setup_py, self._tempDir)
+        buildCmd %= (sys.executable, setup_py, self._tempDir)
         res = runcmd(buildCmd)
         self.assertEqual(res, 0)
         testCmd = self._tempDir + "\\test_pyenchant.exe"

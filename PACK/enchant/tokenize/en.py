@@ -111,7 +111,7 @@ class tokenize(enchant.tokenize.tokenize):
                     try:
                         s = text[offset:offset + incr].tostring()
                     except AttributeError:
-                        s = "".join([c for c in text[offset:offset + incr]])
+                        s = "".join(list(text[offset:offset + incr]))
                     u = s.decode("utf8")
             except UnicodeDecodeError:
                 incr += 1
@@ -119,9 +119,7 @@ class tokenize(enchant.tokenize.tokenize):
             return 0
         if u.isalpha():
             return incr
-        if unicodedata.category(u)[0] == "M":
-            return incr
-        return 0
+        return incr if unicodedata.category(u)[0] == "M" else 0
 
     def _consume_alpha_u(self, text, offset):
         """Consume an alphabetic character from the given unicode string.
@@ -135,9 +133,10 @@ class tokenize(enchant.tokenize.tokenize):
         incr = 0
         if text[offset].isalpha():
             incr = 1
-            while offset + incr < len(text):
-                if unicodedata.category(text[offset + incr])[0] != "M":
-                    break
+            while (
+                offset + incr < len(text)
+                and unicodedata.category(text[offset + incr])[0] == "M"
+            ):
                 incr += 1
         return incr
 

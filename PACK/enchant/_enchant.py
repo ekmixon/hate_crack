@@ -91,11 +91,13 @@ if sys.platform == "win32":
             e_path = unicode(e_path, sys.getfilesystemencoding())
         LoadLibraryEx = windll.kernel32.LoadLibraryExW
         LOAD_WITH_ALTERED_SEARCH_PATH = 0x00000008
-        e_handle = LoadLibraryEx(e_path, None, LOAD_WITH_ALTERED_SEARCH_PATH)
-        if not e_handle:
-            raise WinError()
-        e = CDLL(e_path, handle=e_handle)
+        if e_handle := LoadLibraryEx(
+            e_path, None, LOAD_WITH_ALTERED_SEARCH_PATH
+        ):
+            e = CDLL(e_path, handle=e_handle)
 
+        else:
+            raise WinError()
 # On darwin we ship a bundled version of the enchant DLLs.
 # Use them if they're present.
 if e is None and sys.platform == "darwin":
@@ -259,7 +261,7 @@ def dict_suggest(dict, word):
     n = 0
     while n < numSuggsP.contents.value:
         suggs.append(suggs_c[n])
-        n = n + 1
+        n += 1
     if numSuggsP.contents.value > 0:
         dict_free_string_list(dict, suggs_c)
     return suggs

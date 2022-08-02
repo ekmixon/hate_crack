@@ -58,34 +58,34 @@ class TestChecker(unittest.TestCase):
                 self.assertEqual(err.wordpos, 8)
                 self.assertTrue("some" in err.suggest())
                 err.replace("some")
-            if n == 1:
+            elif n == 1:
                 # Ignore "speling"
                 self.assertEqual(err.word, "speling")
-            if n == 2:
+            elif n == 2:
                 # Check context around "erors", and replace
                 self.assertEqual(err.word, "erors")
                 self.assertEqual(err.leading_context(5), "ling ")
                 self.assertEqual(err.trailing_context(5), " in i")
                 err.replace(raw_unicode("errors"))
-            if n == 3:
+            elif n == 3:
                 # Replace-all on gret as it appears twice
                 self.assertEqual(err.word, "gret")
                 err.replace_always("great")
-            if n == 4:
+            elif n == 4:
                 # First encounter with "wheather", move offset back
                 self.assertEqual(err.word, "wheather")
                 err.set_offset(-1 * len(err.word))
-            if n == 5:
+            elif n == 5:
                 # Second encounter, fix up "wheather'
                 self.assertEqual(err.word, "wheather")
                 err.replace("whether")
-            if n == 6:
+            elif n == 6:
                 # Just replace "proprly", but also add an ignore
                 # for "SpellChecker"
                 self.assertEqual(err.word, "proprly")
                 err.replace("properly")
                 err.ignore_always("SpellChecker")
-            if n == 7:
+            elif n == 7:
                 # The second "gret" should have been replaced
                 # So it's now on "elss"
                 self.assertEqual(err.word, "elss")
@@ -153,15 +153,15 @@ class TestChecker(unittest.TestCase):
                 self.assertEqual(err.word, raw_unicode("unicode"))
                 self.assertEqual(err.wordpos, 7)
                 chkr.ignore_always()
-            if n == 1:
+            elif n == 1:
                 self.assertEqual(err.word, raw_unicode("strng"))
                 chkr.replace_always("string")
                 self.assertEqual(chkr._replace_words[raw_unicode("strng")], raw_unicode("string"))
-            if n == 2:
+            elif n == 2:
                 self.assertEqual(err.word, raw_unicode("erors"))
                 chkr.replace("erros")
                 chkr.set_offset(-6)
-            if n == 3:
+            elif n == 3:
                 self.assertEqual(err.word, raw_unicode("erros"))
                 chkr.replace("errors")
         self.assertEqual(n, 3)
@@ -170,10 +170,7 @@ class TestChecker(unittest.TestCase):
     def test_chararray(self):
         """Test SpellChecker with a character array as input."""
         # Python 3 does not provide 'c' array type
-        if str is unicode:
-            atype = 'u'
-        else:
-            atype = 'c'
+        atype = 'u' if str is unicode else 'c'
         text = "I wll be stord in an aray"
         txtarr = array.array(atype, text)
         chkr = SpellChecker("en_US", txtarr)
@@ -181,11 +178,11 @@ class TestChecker(unittest.TestCase):
             if n == 0:
                 self.assertEqual(err.word, "wll")
                 self.assertEqual(err.word.__class__, str)
-            if n == 1:
+            elif n == 1:
                 self.assertEqual(err.word, "stord")
                 txtarr[err.wordpos:err.wordpos + len(err.word)] = array.array(atype, "stored")
                 chkr.set_offset(-1 * len(err.word))
-            if n == 2:
+            elif n == 2:
                 self.assertEqual(err.word, "aray")
                 chkr.replace("array")
         self.assertEqual(n, 2)
@@ -203,7 +200,7 @@ class TestChecker(unittest.TestCase):
         for n, err in enumerate(chkr):
             if n == 0:
                 self.assertEqual(err.word, "sme")
-            if n == 1:
+            elif n == 1:
                 self.assertEqual(err.word, "cheked")
                 chkr.add()
         self.assertEqual(n, 1)
@@ -212,12 +209,8 @@ class TestChecker(unittest.TestCase):
         """Testcases for bug #2785373."""
         c = SpellChecker(enchant.Dict("en"), "")
         c.set_text("So, one dey when I wes 17, I left.")
-        for err in c:
-            pass
         c = SpellChecker(enchant.Dict("en"), "")
         c.set_text(raw_unicode("So, one dey when I wes 17, I left."))
-        for err in c:
-            pass
 
     def test_default_language(self):
         lang = get_default_language()

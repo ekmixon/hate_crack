@@ -41,19 +41,17 @@ class PolicyGen:
         """ Return mask complexity. """
         count = 1
         for char in mask[1:].split("?"):
-            if char == "l":
-                count *= 26
-            elif char == "u":
-                count *= 26
+            if char == "a":
+                count *= 95
             elif char == "d":
                 count *= 10
+            elif char in ["l", "u"]:
+                count *= 26
             elif char == "s":
                 count *= 33
-            elif char == "a":
-                count *= 95
             else:
                 print
-            "[!] Error, unknown mask ?%s in a mask %s" % (char, mask)
+            f"[!] Error, unknown mask ?{char} in a mask {mask}"
 
         return count
 
@@ -94,26 +92,32 @@ class PolicyGen:
 
                 # Count charachter types in a mask
                 for char in mask[1:].split("?"):
-                    if char == "l":
-                        lowercount += 1
-                    elif char == "u":
-                        uppercount += 1
-                    elif char == "d":
+                    if char == "d":
                         digitcount += 1
+                    elif char == "l":
+                        lowercount += 1
                     elif char == "s":
                         specialcount += 1
 
+                    elif char == "u":
+                        uppercount += 1
                 # Filter according to password policy
                 # NOTE: Perform exact opposite (XOR) operation if noncompliant
                 #       flag was set when calling the function.
-                if ((self.minlower == None or lowercount >= self.minlower) and \
-                            (self.maxlower == None or lowercount <= self.maxlower) and \
-                            (self.minupper == None or uppercount >= self.minupper) and \
-                            (self.maxupper == None or uppercount <= self.maxupper) and \
-                            (self.mindigit == None or digitcount >= self.mindigit) and \
-                            (self.maxdigit == None or digitcount <= self.maxdigit) and \
-                            (self.minspecial == None or specialcount >= self.minspecial) and \
-                            (self.maxspecial == None or specialcount <= self.maxspecial)) ^ noncompliant:
+                if (
+                    (self.minlower is None or lowercount >= self.minlower)
+                    and (self.maxlower is None or lowercount <= self.maxlower)
+                    and (self.minupper is None or uppercount >= self.minupper)
+                    and (self.maxupper is None or uppercount <= self.maxupper)
+                    and (self.mindigit is None or digitcount >= self.mindigit)
+                    and (self.maxdigit is None or digitcount <= self.maxdigit)
+                    and (
+                        self.minspecial is None or specialcount >= self.minspecial
+                    )
+                    and (
+                        self.maxspecial is None or specialcount <= self.maxspecial
+                    )
+                ) ^ noncompliant:
 
                     sample_length_count += 1
                     sample_length_complexity += mask_complexity
@@ -161,7 +165,11 @@ if __name__ == "__main__":
     header += "\n"
 
     # parse command line arguments
-    parser = OptionParser("%prog [options]\n\nType --help for more options", version="%prog " + VERSION)
+    parser = OptionParser(
+        "%prog [options]\n\nType --help for more options",
+        version=f"%prog {VERSION}",
+    )
+
     parser.add_option("-o", "--outputmasks", dest="output_masks", help="Save masks to a file", metavar="masks.hcmask")
     parser.add_option("--pps", dest="pps", help="Passwords per Second", type="int", metavar="1000000000")
     parser.add_option("--showmasks", dest="showmasks", help="Show matching masks", action="store_true", default=False)
@@ -201,10 +209,10 @@ if __name__ == "__main__":
 
     policygen = PolicyGen()
 
-    # Settings    
+    # Settings
     if options.output_masks:
         print
-        "[*] Saving generated masks to [%s]" % options.output_masks
+        f"[*] Saving generated masks to [{options.output_masks}]"
         policygen.output_file = open(options.output_masks, 'w')
 
     # Password policy
@@ -232,12 +240,13 @@ if __name__ == "__main__":
     print
     "    Pass Lengths: min:%d max:%d" % (policygen.minlength, policygen.maxlength)
     print
-    "    Min strength: l:%s u:%s d:%s s:%s" % (
-        policygen.minlower, policygen.minupper, policygen.mindigit, policygen.minspecial)
-    print
-    "    Max strength: l:%s u:%s d:%s s:%s" % (
-        policygen.maxlower, policygen.maxupper, policygen.maxdigit, policygen.maxspecial)
+    f"    Min strength: l:{policygen.minlower} u:{policygen.minupper} d:{policygen.mindigit} s:{policygen.minspecial}"
 
     print
-    "[*] Generating [%s] masks." % ("compliant" if not options.noncompliant else "non-compliant")
+    f"    Max strength: l:{policygen.maxlower} u:{policygen.maxupper} d:{policygen.maxdigit} s:{policygen.maxspecial}"
+
+
+    print
+    f'[*] Generating [{"non-compliant" if options.noncompliant else "compliant"}] masks.'
+
     policygen.generate_masks(options.noncompliant)

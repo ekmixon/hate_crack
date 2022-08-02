@@ -22,7 +22,7 @@ VERSION = "0.0.3"
 class MaskGen:
     def __init__(self):
         # Masks collections with meta data
-        self.masks = dict()
+        self.masks = {}
 
         self.target_time = None
         self.output_file = None
@@ -47,19 +47,17 @@ class MaskGen:
         """ Return mask complexity. """
         count = 1
         for char in mask[1:].split("?"):
-            if char == "l":
-                count *= 26
-            elif char == "u":
-                count *= 26
+            if char == "a":
+                count *= 95
             elif char == "d":
                 count *= 10
+            elif char in ["l", "u"]:
+                count *= 26
             elif char == "s":
                 count *= 33
-            elif char == "a":
-                count *= 95
             else:
                 print
-            "[!] Error, unknown mask ?%s in a mask %s" % (char, mask)
+            f"[!] Error, unknown mask ?{char} in a mask {mask}"
 
         return count
 
@@ -79,15 +77,29 @@ class MaskGen:
             self.total_occurrence += mask_occurrence
 
             # Apply filters based on occurrence, length, complexity and time
-            if (self.minoccurrence == None or mask_occurrence >= self.minoccurrence) and \
-                    (self.maxoccurrence == None or mask_occurrence <= self.maxoccurrence) and \
-                    (self.mincomplexity == None or mask_complexity <= self.mincomplexity) and \
-                    (self.maxcomplexity == None or mask_complexity <= self.maxcomplexity) and \
-                    (self.mintime == None or mask_time <= self.mintime) and \
-                    (self.maxtime == None or mask_time <= self.maxtime) and \
-                    (self.maxlength == None or mask_length <= self.maxlength) and \
-                    (self.minlength == None or mask_length >= self.minlength):
-                self.masks[mask] = dict()
+            if (
+                (
+                    self.minoccurrence is None
+                    or mask_occurrence >= self.minoccurrence
+                )
+                and (
+                    self.maxoccurrence is None
+                    or mask_occurrence <= self.maxoccurrence
+                )
+                and (
+                    self.mincomplexity is None
+                    or mask_complexity <= self.mincomplexity
+                )
+                and (
+                    self.maxcomplexity is None
+                    or mask_complexity <= self.maxcomplexity
+                )
+                and (self.mintime is None or mask_time <= self.mintime)
+                and (self.maxtime is None or mask_time <= self.maxtime)
+                and (self.maxlength is None or mask_length <= self.maxlength)
+                and (self.minlength is None or mask_length >= self.minlength)
+            ):
+                self.masks[mask] = {}
                 self.masks[mask]['length'] = mask_length
                 self.masks[mask]['occurrence'] = mask_occurrence
                 self.masks[mask]['complexity'] = 1 - mask_complexity
@@ -130,13 +142,13 @@ class MaskGen:
         print
         "[*] Finished generating masks:"
         print
-        "    Masks generated: %s" % sample_count
+        f"    Masks generated: {sample_count}"
         print
         "    Masks coverage:  %d%% (%d/%d)" % (
             sample_occurrence * 100 / self.total_occurrence, sample_occurrence, self.total_occurrence)
         time_human = ">1 year" if sample_time > 60 * 60 * 24 * 365 else str(datetime.timedelta(seconds=sample_time))
         print
-        "    Masks runtime:   %s" % time_human
+        f"    Masks runtime:   {time_human}"
 
     def getmaskscoverage(self, checkmasks):
 
@@ -179,12 +191,12 @@ class MaskGen:
         print
         "[*] Finished matching masks:"
         print
-        "    Masks matched: %s" % sample_count
+        f"    Masks matched: {sample_count}"
         print
         "    Masks coverage:  %d%% (%d/%d)" % (
             sample_occurrence * 100 / self.total_occurrence, sample_occurrence, self.total_occurrence)
         print
-        "    Masks runtime:   %s" % time_human
+        f"    Masks runtime:   {time_human}"
 
 
 if __name__ == "__main__":
@@ -199,7 +211,11 @@ if __name__ == "__main__":
     header += "     |_| iphelix@thesprawl.org\n"
     header += "\n"
 
-    parser = OptionParser("%prog pass0.masks [pass1.masks ...] [options]", version="%prog " + VERSION)
+    parser = OptionParser(
+        "%prog pass0.masks [pass1.masks ...] [options]",
+        version=f"%prog {VERSION}",
+    )
+
 
     parser.add_option("-t", "--targettime", dest="target_time", type="int", metavar="86400",
                       help="Target time of all masks (seconds)")
@@ -251,7 +267,7 @@ if __name__ == "__main__":
         exit(1)
 
     print
-    "[*] Analyzing masks in [%s]" % args[0]
+    f"[*] Analyzing masks in [{args[0]}]"
 
     maskgen = MaskGen()
 
@@ -259,7 +275,7 @@ if __name__ == "__main__":
     if options.target_time: maskgen.target_time = options.target_time
     if options.output_masks:
         print
-        "[*] Saving generated masks to [%s]" % options.output_masks
+        f"[*] Saving generated masks to [{options.output_masks}]"
         maskgen.output_file = open(options.output_masks, 'w')
 
     # Filters
@@ -286,18 +302,14 @@ if __name__ == "__main__":
     # Matching masks from the command-line
     if options.checkmasks:
         checkmasks = [m.strip() for m in options.checkmasks.split(',')]
-        print
-        "[*] Checking coverage of the these masks [%s]" % ", ".join(checkmasks)
+        f'[*] Checking coverage of the these masks [{", ".join(checkmasks)}]'
         maskgen.getmaskscoverage(checkmasks)
 
-    # Matching masks from a file
     elif options.checkmasks_file:
         checkmasks_file = open(options.checkmasks_file, 'r')
-        print
-        "[*] Checking coverage of masks in [%s]" % options.checkmasks_file
+        f"[*] Checking coverage of masks in [{options.checkmasks_file}]"
         maskgen.getmaskscoverage(checkmasks_file)
 
-    # Printing masks in a file
     else:
         # Process masks according to specified sorting algorithm
         if options.occurrence:
@@ -307,6 +319,7 @@ if __name__ == "__main__":
         else:
             sorting_mode = "optindex"
 
-        print
-        "[*] Sorting masks by their [%s]." % sorting_mode
+        f"[*] Sorting masks by their [{sorting_mode}]."
         maskgen.generate_masks(sorting_mode)
+
+    print

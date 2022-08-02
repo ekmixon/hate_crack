@@ -59,7 +59,7 @@ of words. Also need to "test" the (handling) of 'quoted' words."""
             ("to", 140), ("test", 144), ("the", 150), ("handling", 155),
             ("of", 165), ("quoted", 169), ("words", 177)
         ]
-        self.assertEqual(output, [i for i in basic_tokenize(input)])
+        self.assertEqual(output, list(basic_tokenize(input)))
         for (itmO, itmV) in zip(output, basic_tokenize(input)):
             self.assertEqual(itmO, itmV)
 
@@ -68,7 +68,7 @@ of words. Also need to "test" the (handling) of 'quoted' words."""
         input = "((' <this> \"\" 'text' has (lots) of (special chars} >>]"
         output = [("<this>", 4), ("text", 15), ("has", 21), ("lots", 26), ("of", 32),
                   ("special", 36), ("chars}", 44), (">>", 51)]
-        self.assertEqual(output, [i for i in basic_tokenize(input)])
+        self.assertEqual(output, list(basic_tokenize(input)))
         for (itmO, itmV) in zip(output, basic_tokenize(input)):
             self.assertEqual(itmO, itmV)
 
@@ -84,10 +84,10 @@ of words. Also need to "test" the (handling) of 'quoted' words."""
             if n == 0:
                 self.assertEqual(pos, 0)
                 self.assertEqual(word, "this")
-            if n == 1:
+            elif n == 1:
                 self.assertEqual(pos, 5)
                 self.assertEqual(word, "string")
-            if n == 2:
+            elif n == 2:
                 self.assertEqual(pos, 12)
                 self.assertEqual(word, "will")
                 # Test setting offset to a previous token
@@ -95,13 +95,13 @@ of words. Also need to "test" the (handling) of 'quoted' words."""
                 self.assertEqual(tknzr.offset, 5)
                 self.assertEqual(tknzr._tokenizer.offset, 5)
                 self.assertEqual(tknzr._curtok.__class__, empty_tokenize)
-            if n == 3:
+            elif n == 3:
                 self.assertEqual(word, "string")
                 self.assertEqual(pos, 5)
-            if n == 4:
+            elif n == 4:
                 self.assertEqual(pos, 12)
                 self.assertEqual(word, "will")
-            if n == 5:
+            elif n == 5:
                 self.assertEqual(pos, 17)
                 self.assertEqual(word, "be")
                 # Test setting offset past the current token
@@ -109,10 +109,10 @@ of words. Also need to "test" the (handling) of 'quoted' words."""
                 self.assertEqual(tknzr.offset, 20)
                 self.assertEqual(tknzr._tokenizer.offset, 20)
                 self.assertEqual(tknzr._curtok.__class__, empty_tokenize)
-            if n == 6:
+            elif n == 6:
                 self.assertEqual(pos, 20)
                 self.assertEqual(word, "split")
-            if n == 7:
+            elif n == 7:
                 self.assertEqual(pos, 26)
                 self.assertEqual(word, "according")
                 # Test setting offset to middle of current token
@@ -120,7 +120,7 @@ of words. Also need to "test" the (handling) of 'quoted' words."""
                 self.assertEqual(tknzr.offset, 23)
                 self.assertEqual(tknzr._tokenizer.offset, 23)
                 self.assertEqual(tknzr._curtok.offset, 3)
-            if n == 8:
+            elif n == 8:
                 self.assertEqual(pos, 23)
                 self.assertEqual(word, "it")
                 # OK, I'm pretty happy with the behaviour, no need to
@@ -140,7 +140,7 @@ class TestFilters(unittest.TestCase):
     def test_URLFilter(self):
         """Test filtering of URLs"""
         tkns = get_tokenizer("en_US", filters=(URLFilter,))(self.text)
-        out = [t for t in tkns]
+        out = list(tkns)
         exp = [("this", 0), ("text", 5), ("with", 10), ("and", 30),
                ("SomeLinksLike", 34), ("AndOthers", 93), ("not", 103), ("quite", 108),
                ("a", 114), ("url", 116), ("with", 134), ("an", 139), ("aemail", 142),
@@ -150,7 +150,7 @@ class TestFilters(unittest.TestCase):
     def test_WikiWordFilter(self):
         """Test filtering of WikiWords"""
         tkns = get_tokenizer("en_US", filters=(WikiWordFilter,))(self.text)
-        out = [t for t in tkns]
+        out = list(tkns)
         exp = [("this", 0), ("text", 5), ("with", 10), ("http", 15), ("url", 22), ("com", 26),
                ("and", 30), ("ftp", 62), ("my", 68), ("site", 71), ("com", 76), ("au", 80),
                ("some", 83), ("file", 88), ("not", 103), ("quite", 108),
@@ -161,7 +161,7 @@ class TestFilters(unittest.TestCase):
     def test_EmailFilter(self):
         """Test filtering of email addresses"""
         tkns = get_tokenizer("en_US", filters=(EmailFilter,))(self.text)
-        out = [t for t in tkns]
+        out = list(tkns)
         exp = [("this", 0), ("text", 5), ("with", 10), ("http", 15), ("url", 22), ("com", 26),
                ("and", 30), ("SomeLinksLike", 34),
                ("ftp", 62), ("my", 68), ("site", 71), ("com", 76), ("au", 80),
@@ -173,7 +173,7 @@ class TestFilters(unittest.TestCase):
     def test_CombinedFilter(self):
         """Test several filters combined"""
         tkns = get_tokenizer("en_US", filters=(URLFilter, WikiWordFilter, EmailFilter))(self.text)
-        out = [t for t in tkns]
+        out = list(tkns)
         exp = [("this", 0), ("text", 5), ("with", 10),
                ("and", 30), ("not", 103), ("quite", 108),
                ("a", 114), ("url", 116),
@@ -191,7 +191,7 @@ class TestChunkers(unittest.TestCase):
                 It < contains > various <-- special characters.
                 """
         tkns = get_tokenizer("en_US", chunkers=(HTMLChunker,))(text)
-        out = [t for t in tkns]
+        out = list(tkns)
         exp = [("hello", 0), ("my", 24), ("title", 27), ("this", 53), ("is", 58),
                ("a", 61), ("simple", 82), ("HTML", 93), ("document", 98), ("for", 107),
                ("test", 115), ("ing", 122), ("purposes", 130), ("It", 160),
@@ -228,7 +228,7 @@ of words. Also need to "test" the handling of 'quoted' words."""
         input = raw_unicode(
             r"Ik ben ge\u00EFnteresseerd in de co\u00F6rdinatie van mijn knie\u00EBn, maar kan niet \u00E9\u00E9n \u00E0 twee enqu\u00EAtes vinden die recht doet aan mijn carri\u00E8re op Cura\u00E7ao")
         output = input.split(" ")
-        output[8] = output[8][0:-1]
+        output[8] = output[8][:-1]
         for (itmO, itmV) in zip(output, tokenize_en(input)):
             self.assertEqual(itmO, itmV[0])
             self.assertTrue(input[itmV[1]:].startswith(itmO))
@@ -238,7 +238,7 @@ of words. Also need to "test" the handling of 'quoted' words."""
         input = raw_unicode(
             r"Ik ben gei\u0308nteresseerd in de co\u00F6rdinatie van mijn knie\u00EBn, maar kan niet e\u0301e\u0301n \u00E0 twee enqu\u00EAtes vinden die recht doet aan mijn carri\u00E8re op Cura\u00E7ao")
         output = input.split(" ")
-        output[8] = output[8][0:-1]
+        output[8] = output[8][:-1]
         for (itmO, itmV) in zip(output, tokenize_en(input)):
             self.assertEqual(itmO, itmV[0])
             self.assertTrue(input[itmV[1]:].startswith(itmO))
@@ -250,7 +250,7 @@ of words. Also need to "test" the handling of 'quoted' words."""
             return
         input = "A r\xc3\xa9sum\xc3\xa9, also spelled resum\xc3\xa9 or resume"
         output = input.split(" ")
-        output[1] = output[1][0:-1]
+        output[1] = output[1][:-1]
         for (itmO, itmV) in zip(output, tokenize_en(input)):
             self.assertEqual(itmO, itmV[0])
             self.assertTrue(input[itmV[1]:].startswith(itmO))
@@ -262,7 +262,7 @@ of words. Also need to "test" the handling of 'quoted' words."""
             return
         input = "A r\xc3\xa9sum\xc3\xa9, also spelled resum\xc3\xa9 or resume"
         output = input.split(" ")
-        output[1] = output[1][0:-1]
+        output[1] = output[1][:-1]
         for (itmO, itmV) in zip(output, tokenize_en(input)):
             self.assertEqual(itmO, itmV[0])
 
@@ -273,7 +273,7 @@ of words. Also need to "test" the handling of 'quoted' words."""
             return
         input = "A r\xc3\xa9sum\xc3\xa9, also spelled resum\xc3\xa9 or resume"
         output = input.split(" ")
-        output[1] = output[1][0:-1]
+        output[1] = output[1][:-1]
         input = array.array('c', input)
         output = [array.array('c', w) for w in output]
         for (itmO, itmV) in zip(output, tokenize_en(array.array('c', input))):

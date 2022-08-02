@@ -220,13 +220,13 @@ class GtkSpellCheckerDialog(gtk.Window):
         model = self.suggestion_list_view.get_model()
         model.clear()
         for suggestion in suggestions:
-            value = unicode("%s" % (suggestion,))
+            value = unicode(f"{suggestion}")
             model.append([value, ])
 
     def setSpellChecker(self, checker):
         assert checker, 'checker cant be None'
         self._checker = checker
-        self._dict_lable.set_text('Dictionary:%s' % (checker.dict.tag,))
+        self._dict_lable.set_text(f'Dictionary:{checker.dict.tag}')
 
     def getSpellChecker(self, checker):
         return self._checker

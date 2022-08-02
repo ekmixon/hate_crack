@@ -8,7 +8,7 @@ import pathlib
 
 # Help
 def usage():
-  print("usage: python %s <input file list> <output directory>" % sys.argv[0])
+  print(f"usage: python {sys.argv[0]} <input file list> <output directory>")
 
 def lineCount(file):
   try:
@@ -17,7 +17,7 @@ def lineCount(file):
     return 0
 
   count = 0
-  for line in outFile:
+  for _ in outFile:
     count = count + 1
   return count
 
@@ -54,28 +54,32 @@ def main():
   # Get list of wordlists from <input file list> argument
   for wordlist in input_list:
     print(wordlist.strip())
-    
+
     # Parse wordlists by password length into "optimized" <output directory>
     if len(os.listdir(destination)) == 0:
-      splitlenProcess = subprocess.Popen("%s %s < %s" % (splitlen_bin, destination, wordlist), shell=True).wait()
+      splitlenProcess = subprocess.Popen(
+          f"{splitlen_bin} {destination} < {wordlist}", shell=True).wait()
     else:
       if not os.path.isdir("/tmp/splitlen"):
         os.mkdir("/tmp/splitlen")
-      splitlenProcess = subprocess.Popen("%s /tmp/splitlen < %s" % (splitlen_bin, wordlist), shell=True).wait()
+      splitlenProcess = subprocess.Popen(
+          f"{splitlen_bin} /tmp/splitlen < {wordlist}", shell=True).wait()
 
       # Copy unique passwords into "optimized" <output directory>
       for file in os.listdir("/tmp/splitlen"):
-        if not os.path.isfile(destination + "/" + file):
-          shutil.copyfile("/tmp/splitlen/" + file, destination + "/" + file)
+        if not os.path.isfile(f"{destination}/{file}"):
+          shutil.copyfile(f"/tmp/splitlen/{file}", f"{destination}/{file}")
         else:
-          rliProcess = subprocess.Popen("%s /tmp/splitlen/%s /tmp/splitlen.out %s/%s" % (rli_bin, file, destination, file), shell=True).wait()
+          rliProcess = subprocess.Popen(
+              f"{rli_bin} /tmp/splitlen/{file} /tmp/splitlen.out {destination}/{file}",
+              shell=True,
+          ).wait()
           if lineCount("/tmp/splitlen.out") > 0:
-            destination_file = open(destination + "/" + file, "a")
-            splitlen_file = open("/tmp/splitlen.out", "r")
-            destination_file.write(splitlen_file.read())
-            destination_file.close()
+            with open(f"{destination}/{file}", "a") as destination_file:
+              splitlen_file = open("/tmp/splitlen.out", "r")
+              destination_file.write(splitlen_file.read())
             splitlen_file.close()
-            
+
     # Clean Up
     if os.path.isdir("/tmp/splitlen"):
       shutil.rmtree('/tmp/splitlen')

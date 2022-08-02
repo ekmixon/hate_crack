@@ -186,8 +186,7 @@ class wxSpellCheckerDialog(wx.Dialog):
 
     def GetRepl(self):
         """Get the chosen replacement string."""
-        repl = self.replace_text.GetValue()
-        return repl
+        return self.replace_text.GetValue()
 
     def OnAdd(self, evt):
         """Callback for the "add" button."""
@@ -215,8 +214,7 @@ class wxSpellCheckerDialog(wx.Dialog):
 
     def OnReplace(self, evt):
         """Callback for the "replace" button."""
-        repl = self.GetRepl()
-        if repl:
+        if repl := self.GetRepl():
             self._checker.replace(repl)
         self.Advance()
 

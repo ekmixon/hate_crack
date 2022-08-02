@@ -183,15 +183,11 @@ class SpellChecker:
 
     def get_text(self):
         """Return the spell-checked text."""
-        if self._use_tostring:
-            return self._array_to_string(self._text)
-        return self._text
+        return self._array_to_string(self._text) if self._use_tostring else self._text
 
     def _array_to_string(self, text):
         """Format an internal array as a standard string."""
-        if text.typecode == 'u':
-            return text.tounicode()
-        return text.tostring()
+        return text.tounicode() if text.typecode == 'u' else text.tostring()
 
     def wants_unicode(self):
         """Check whether the checker wants unicode strings.
@@ -200,9 +196,7 @@ class SpellChecker:
         as input, False if it wants normal strings.  It's important to
         provide the correct type of string to the checker.
         """
-        if self._text.typecode == 'u':
-            return True
-        return False
+        return self._text.typecode == 'u'
 
     def coerce_string(self, text, enc=None):
         """Coerce string into the required type.
@@ -214,16 +208,10 @@ class SpellChecker:
         """
         if self.wants_unicode():
             if not isinstance(text, unicode):
-                if enc is None:
-                    return text.decode()
-                else:
-                    return text.decode(enc)
+                return text.decode() if enc is None else text.decode(enc)
             return text
         if not isinstance(text, bytes):
-            if enc is None:
-                return text.encode()
-            else:
-                return text.encode(enc)
+            return text.encode() if enc is None else text.encode(enc)
         return text
 
     def __next__(self):
@@ -326,8 +314,7 @@ class SpellChecker:
         """
         if word is None:
             word = self.word
-        suggs = self.dict.suggest(word)
-        return suggs
+        return self.dict.suggest(word)
 
     def check(self, word):
         """Check correctness of the given word."""
@@ -353,7 +340,7 @@ class SpellChecker:
             assert (off > 0)
             self._tokens.set_offset(len(self._text) - 1 - off)
         else:
-            raise ValueError("Invalid value for whence: %s" % (whence,))
+            raise ValueError(f"Invalid value for whence: {whence}")
 
     def leading_context(self, chars):
         """Get <chars> characters of leading context.

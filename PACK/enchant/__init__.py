@@ -132,7 +132,7 @@ class ProviderDesc(object):
         self.file = file
 
     def __str__(self):
-        return "<Enchant: %s>" % self.desc
+        return f"<Enchant: {self.desc}>"
 
     def __repr__(self):
         return str(self)
@@ -173,7 +173,7 @@ class _EnchantObject(object):
         """Check that self._this is set to a pointer, rather than None."""
         if msg is None:
             msg = "%s unusable: the underlying C-library object has been freed."
-            msg = msg % (self.__class__.__name__,)
+            msg %= (self.__class__.__name__,)
         if self._this is None:
             raise Error(msg)
 
@@ -521,10 +521,9 @@ class Dict(_EnchantObject):
         # If no tag was given, use the default language
         if tag is None:
             tag = get_default_language()
-            if tag is None:
-                err = "No tag specified and default language could not "
-                err = err + "be determined."
-                raise Error(err)
+        if tag is None:
+            err = "No tag specified and default language could not " + "be determined."
+            raise Error(err)
         self.tag = tag
         # If no broker was given, use the default broker
         if broker is None:
@@ -822,11 +821,7 @@ class DictWithPWL(Dict):
         """
         if self.pel.check(word):
             return False
-        if self.pwl.check(word):
-            return True
-        if Dict.check(self, word):
-            return True
-        return False
+        return True if self.pwl.check(word) else bool(Dict.check(self, word))
 
     def suggest(self, word):
         """Suggest possible spellings for a word.

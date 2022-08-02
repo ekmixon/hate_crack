@@ -154,24 +154,15 @@ class EnchantStr(str):
 
     def encode(self):
         """Encode this string into a form usable by the enchant C library."""
-        if str is unicode:
-            return str.encode(self, "utf-8")
-        else:
-            return self
+        return str.encode(self, "utf-8") if str is unicode else self
 
     def decode(self, value):
         """Decode a string returned by the enchant C library."""
-        if self._was_unicode:
-            if str is unicode:
-                # On some python3 versions, ctypes converts c_char_p
-                # to str() rather than bytes()
-                if isinstance(value, str):
-                    value = value.encode()
-                return value.decode("utf-8")
-            else:
-                return value.decode("utf-8")
-        else:
+        if not self._was_unicode:
             return value
+        if str is unicode and isinstance(value, str):
+            value = value.encode()
+        return value.decode("utf-8")
 
 
 def printf(values, sep=" ", end="\n", file=None):
@@ -268,8 +259,8 @@ def get_default_language(default=None):
         tag = locale.getlocale()[0]
         if tag is None:
             tag = locale.getdefaultlocale()[0]
-            if tag is None:
-                raise Error("No default language available")
+        if tag is None:
+            raise Error("No default language available")
         return tag
     except Exception:
         pass
